@@ -1,0 +1,13 @@
+# Сборка бэкенда
+bin/
+obj/
+*.db
+*.db-journal
+
+# Фронтенд
+node_modules/
+dist/
+.env
+
+# VS Code
+.vscode/
