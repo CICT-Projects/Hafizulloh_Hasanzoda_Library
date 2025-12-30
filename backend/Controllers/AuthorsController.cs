@@ -34,6 +34,18 @@ public class AuthorsController : ControllerBase
         return CreatedAtAction(nameof(GetAuthor), new { id = author.Id }, author);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateAuthor(int id, Author author)
+    {
+        if (id != author.Id) return BadRequest();
+
+        _context.Entry(author).State = EntityState.Modified;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAuthor(int id)
     {
