@@ -1,91 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 const Books = () => {
   const [books, setBooks] = useState([]);
   const [title, setTitle] = useState('');
   const [publicationYear, setPublicationYear] = useState('');
 
-  useEffect(() => {
-    fetchBooks();
-  }, []);
+  useEffect(() => { fetchBooks(); }, []);
 
   const fetchBooks = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/books');
-      setBooks(response.data);
-    } catch (error) {
-      console.error('Error fetching books:', error);
-    }
+    try { const response = await axios.get('http://localhost:5000/api/books'); setBooks(response.data || []); }
+    catch (error) { console.error('Error fetching books:', error); }
   };
 
   const addBook = async (e) => {
     e.preventDefault();
-    try {
-      await axios.post('http://localhost:5000/api/books', {
-        title,
-        publicationYear: parseInt(publicationYear)
-      });
-      setTitle('');
-      setPublicationYear('');
-      fetchBooks();
-    } catch (error) {
-      console.error('Error adding book:', error);
-    }
+    try { await axios.post('http://localhost:5000/api/books', { title, publicationYear: parseInt(publicationYear) }); setTitle(''); setPublicationYear(''); fetchBooks(); }
+    catch (error) { console.error('Error adding book:', error); }
   };
 
   const deleteBook = async (id) => {
-    try {
-      await axios.delete(`http://localhost:5000/api/books/${id}`);
-      fetchBooks();
-    } catch (error) {
-      console.error('Error deleting book:', error);
-    }
+    if (!confirm('Удалить книгу?')) return;
+    try { await axios.delete(`http://localhost:5000/api/books/${id}`); fetchBooks(); }
+    catch (error) { console.error('Error deleting book:', error); }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Книги</h2>
-      <form onSubmit={addBook} style={{ marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Название"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          style={{ marginRight: '10px', padding: '5px' }}
-        />
-        <input
-          type="number"
-          placeholder="Год публикации"
-          value={publicationYear}
-          onChange={(e) => setPublicationYear(e.target.value)}
-          required
-          style={{ marginRight: '10px', padding: '5px' }}
-        />
-        <button type="submit" style={{ padding: '5px 10px' }}>Добавить</button>
-      </form>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Название</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Год</th>
-            <th style={{ border: '1px solid #ddd', padding: '8px' }}>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((book) => (
-            <tr key={book.id}>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{book.title}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>{book.publicationYear}</td>
-              <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                <button onClick={() => deleteBook(book.id)} style={{ padding: '5px 10px' }}>Удалить</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.32 }} className="max-w-5xl mx-auto">
+      <div className="bg-white border border-gray-100 shadow-sm rounded-lg p-6">
+        <h2 className="text-2xl font-semibold mb-4">Книги</h2>
+
+        <form onSubmit={addBook} className="flex gap-3 mb-6">
+          <input type="text" placeholder="Название" value={title} onChange={(e) => setTitle(e.target.value)} required className="flex-1 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+          <input type="number" placeholder="Год публикации" value={publicationYear} onChange={(e) => setPublicationYear(e.target.value)} required className="w-44 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} type="submit" className="bg-brand-500 text-white rounded-xl px-4 py-2 font-medium">Добавить</motion.button>
+        </form>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-100">
+            <thead>
+              <tr className="text-left text-sm text-slate-600">
+                <th className="px-4 py-2">Название</th>
+                <th className="px-4 py-2">Год</th>
+                <th className="px-4 py-2">Действия</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {books.map((book) => (
+                <motion.tr key={book.id} whileHover={{ scale: 1 }} className="hover:bg-gray-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.18 }}>
+                  <td className="px-4 py-3 text-sm border-t border-gray-100">{book.title}</td>
+                  <td className="px-4 py-3 text-sm border-t border-gray-100">{book.publicationYear}</td>
+                  <td className="px-4 py-3 text-sm border-t border-gray-100">
+                    <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }} onClick={() => deleteBook(book.id)} className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1 rounded-lg">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      Удалить
+                    </motion.button>
+                  </td>
+                </motion.tr>
+              ))}
+              {books.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-6 text-center text-sm text-slate-500">Нет книг</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
