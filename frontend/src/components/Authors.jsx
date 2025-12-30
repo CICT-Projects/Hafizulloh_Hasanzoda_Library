@@ -7,6 +7,7 @@ const Authors = () => {
   const [authors, setAuthors] = useState([]);
   const [name, setName] = useState('');
   const [country, setCountry] = useState('');
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => { fetchAuthors(); }, []);
 
@@ -17,12 +18,19 @@ const Authors = () => {
     } catch (error) { console.error('Error fetching authors:', error); }
   };
 
-  const addAuthor = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/authors', { name, country });
+      if (editId != null) {
+        // update
+        const payload = { id: editId, name, country };
+        await axios.put(`http://localhost:5000/api/authors/${editId}`, payload);
+        setEditId(null);
+      } else {
+        await axios.post('http://localhost:5000/api/authors', { name, country });
+      }
       setName(''); setCountry(''); fetchAuthors();
-    } catch (error) { console.error('Error adding author:', error); }
+    } catch (error) { console.error('Error saving author:', error); }
   };
 
   const deleteAuthor = async (id) => {
@@ -31,12 +39,19 @@ const Authors = () => {
     catch (error) { console.error('Error deleting author:', error); }
   };
 
+  const handleEdit = (item) => {
+    const id = item.id ?? item.Id;
+    setEditId(id);
+    setName(item.name ?? item.Name ?? '');
+    setCountry(item.country ?? item.Country ?? '');
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.32 }} className="max-w-4xl mx-auto">
       <div className="bg-white border border-gray-100 shadow-sm rounded-lg p-6">
         <h2 className="text-2xl font-semibold mb-4">Авторы</h2>
 
-        <form onSubmit={addAuthor} className="flex gap-3 mb-6">
+        <form onSubmit={handleSubmit} className="flex gap-3 mb-6">
           <input
             type="text"
             placeholder="Имя"
@@ -53,7 +68,7 @@ const Authors = () => {
             required
             className="w-48 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} type="submit" className="bg-brand-500 text-white rounded-xl px-4 py-2 font-medium">Добавить</motion.button>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} type="submit" className="bg-brand-500 text-white rounded-xl px-4 py-2 font-medium">{editId != null ? 'Сохранить изменения' : 'Добавить'}</motion.button>
         </form>
 
         <div className="overflow-x-auto">
@@ -71,10 +86,16 @@ const Authors = () => {
                   <td className="px-4 py-3 text-sm border-t border-gray-100">{author.name}</td>
                   <td className="px-4 py-3 text-sm border-t border-gray-100">{author.country}</td>
                   <td className="px-4 py-3 text-sm border-t border-gray-100">
-                    <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }} onClick={() => deleteAuthor(author.id)} className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1 rounded-lg">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                      Удалить
-                    </motion.button>
+                    <div className="inline-flex gap-2">
+                      <motion.button whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }} onClick={() => handleEdit(author)} className="inline-flex items-center gap-2 bg-brand-500 text-white px-3 py-1 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536M4 20h4l10-10-4-4L4 16v4z"/></svg>
+                        Edit
+                      </motion.button>
+                      <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={() => deleteAuthor(author.id ?? author.Id)} className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-3 py-1 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Удалить
+                      </motion.button>
+                    </div>
                   </td>
                 </motion.tr>
               ))}

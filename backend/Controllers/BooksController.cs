@@ -34,6 +34,18 @@ public class BooksController : ControllerBase
         return CreatedAtAction(nameof(GetBook), new { id = book.Id }, book);
     }
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateBook(int id, Book book)
+    {
+        if (id != book.Id) return BadRequest();
+
+        _context.Entry(book).State = EntityState.Modified;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteBook(int id)
     {
